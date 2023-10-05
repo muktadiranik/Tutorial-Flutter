@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
@@ -12,8 +14,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  var currentDate = "";
-  var currentTime = "";
+  var currentDate = "-";
+  var currentTime = "-";
 
   void getTime() async {
     var urlTime = Uri.http("worldtimeapi.org", "/api/Asia/Dhaka");
@@ -26,6 +28,8 @@ class _HomeState extends State<Home> {
       var offset = jsonTimeResponse["utc_offset"];
       print("$datetime, $offset");
       DateTime now = DateTime.parse(datetime);
+      now = now
+          .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
       print(now);
       currentDate = "${now.day}-${now.month}-${now.year}";
       currentTime = "${now.hour}:${now.minute}:${now.second}";
@@ -34,10 +38,28 @@ class _HomeState extends State<Home> {
     }
   }
 
+  Future<String> getAPIData() async {
+    var urlTime = Uri.http("worldtimeapi.org", "/api/Asia/Dhaka");
+    var responseTime = await http.get(urlTime);
+    if (responseTime.statusCode == 200) {
+      var jsonTimeResponse =
+          convert.jsonDecode(responseTime.body) as Map<String, dynamic>;
+      var datetime = jsonTimeResponse["datetime"];
+      var offset = jsonTimeResponse["utc_offset"];
+      DateTime now = DateTime.parse(datetime);
+      now = now
+          .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
+      return now.toString();
+    }
+    return "";
+  }
+
   @override
   void initState() {
     super.initState();
-    getTime();
+    setState(() {
+      getAPIData();
+    });
   }
 
   @override
@@ -62,20 +84,24 @@ class _HomeState extends State<Home> {
               ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      getTime();
+                      getAPIData();
                     });
                   },
                   child: const Icon(Icons.refresh)),
-              Text(
-                currentDate,
-                style:
-                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                currentTime,
-                style:
-                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-              ),
+              FutureBuilder(
+                  future: getAPIData(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    if (snapshot.data == null) {
+                      return const CircularProgressIndicator();
+                    } else {
+                      return Text(
+                        snapshot.data.toString(),
+                        style: const TextStyle(
+                            fontSize: 30, fontWeight: FontWeight.bold),
+                      );
+                    }
+                  })
             ],
           ),
         ));
