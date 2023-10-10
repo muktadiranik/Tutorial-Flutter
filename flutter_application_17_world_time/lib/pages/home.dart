@@ -14,52 +14,58 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  var currentDate = "-";
-  var currentTime = "-";
+  var currentDate = "";
+  var currentTime = "";
 
-  void getTime() async {
-    var urlTime = Uri.http("worldtimeapi.org", "/api/Asia/Dhaka");
-    var responseTime = await http.get(urlTime);
-    if (responseTime.statusCode == 200) {
-      var jsonTimeResponse =
-          convert.jsonDecode(responseTime.body) as Map<String, dynamic>;
-      print(jsonTimeResponse);
-      var datetime = jsonTimeResponse["datetime"];
-      var offset = jsonTimeResponse["utc_offset"];
-      print("$datetime, $offset");
-      DateTime now = DateTime.parse(datetime);
-      now = now
-          .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
-      print(now);
-      currentDate = "${now.day}-${now.month}-${now.year}";
-      currentTime = "${now.hour}:${now.minute}:${now.second}";
-    } else {
-      print(responseTime.statusCode);
+  void getTime(timeZone) async {
+    try {
+      var urlTime = Uri.http("worldtimeapi.org", "/api/$timeZone");
+      var responseTime = await http.get(urlTime);
+      if (responseTime.statusCode == 200) {
+        var jsonTimeResponse =
+            convert.jsonDecode(responseTime.body) as Map<String, dynamic>;
+        var datetime = jsonTimeResponse["datetime"];
+        var offset = jsonTimeResponse["utc_offset"];
+        DateTime now = DateTime.parse(datetime);
+        now = now
+            .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
+        setState(() {
+          currentDate = "${now.day}-${now.month}-${now.year}";
+          currentTime = "${now.hour}:${now.minute}:${now.second}";
+        });
+      } else {
+        print(responseTime.statusCode);
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
-  Future<String> getAPIData() async {
-    var urlTime = Uri.http("worldtimeapi.org", "/api/Asia/Dhaka");
-    var responseTime = await http.get(urlTime);
-    if (responseTime.statusCode == 200) {
-      var jsonTimeResponse =
-          convert.jsonDecode(responseTime.body) as Map<String, dynamic>;
-      var datetime = jsonTimeResponse["datetime"];
-      var offset = jsonTimeResponse["utc_offset"];
-      DateTime now = DateTime.parse(datetime);
-      now = now
-          .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
-      return now.toString();
+  Future<String> getAPIData(timeZone) async {
+    try {
+      var urlTime = Uri.http("worldtimeapi.org", "/api/$timeZone");
+      var responseTime = await http.get(urlTime);
+      if (responseTime.statusCode == 200) {
+        var jsonTimeResponse =
+            convert.jsonDecode(responseTime.body) as Map<String, dynamic>;
+        var datetime = jsonTimeResponse["datetime"];
+        var offset = jsonTimeResponse["utc_offset"];
+        DateTime now = DateTime.parse(datetime);
+        now = now
+            .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
+        return "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute}:${now.second}";
+      }
+      return "";
+    } catch (e) {
+      print(e);
+      return "";
     }
-    return "";
   }
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      getAPIData();
-    });
+    getTime("Asia/Dhaka");
   }
 
   @override
@@ -81,15 +87,18 @@ class _HomeState extends State<Home> {
                   },
                   icon: const Icon(Icons.edit_location),
                   label: const Text("Choose Location")),
-              ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      getAPIData();
-                    });
-                  },
-                  child: const Icon(Icons.refresh)),
+              Text(
+                currentDate,
+                style:
+                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                currentTime,
+                style:
+                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
               FutureBuilder(
-                  future: getAPIData(),
+                  future: getAPIData("Asia/Dhaka"),
                   builder:
                       (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                     if (snapshot.data == null) {
