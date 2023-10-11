@@ -13,6 +13,7 @@ class ChooseLocation extends StatefulWidget {
 }
 
 class _ChooseLocationState extends State<ChooseLocation> {
+  var time;
   void getTime(timeZone) async {
     var urlTime = Uri.http("worldtimeapi.org", "/api/$timeZone");
     var responseTime = await http.get(urlTime);
@@ -24,11 +25,8 @@ class _ChooseLocationState extends State<ChooseLocation> {
       DateTime now = DateTime.parse(datetime);
       now = now
           .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
+      time = now;
       // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, "/home", arguments: {
-        "currentDate": "${now.day}-${now.month}-${now.year}",
-        "currentTime": DateFormat.jm().format(now)
-      });
     } else {
       print(responseTime.statusCode);
     }
@@ -55,7 +53,10 @@ class _ChooseLocationState extends State<ChooseLocation> {
           children: [
             TextButton.icon(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/home");
+                  Navigator.pushReplacementNamed(context, "/home", arguments: {
+                    "currentDate": "${time.day}-${time.month}-${time.year}",
+                    "currentTime": DateFormat.jm().format(time)
+                  });
                 },
                 icon: const Icon(Icons.home),
                 label: const Text("Home")),
