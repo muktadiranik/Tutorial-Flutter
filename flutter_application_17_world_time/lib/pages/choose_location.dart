@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class ChooseLocation extends StatefulWidget {
   const ChooseLocation({super.key});
@@ -12,56 +13,22 @@ class ChooseLocation extends StatefulWidget {
 }
 
 class _ChooseLocationState extends State<ChooseLocation> {
-  int counter = 0;
-
-  void getData() async {
-    await Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        counter += 10;
-      });
-    });
-
-    await Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        counter += 10;
-      });
-    });
-
-    print(counter);
-  }
-
-  void getAPIData() async {
-    var urlList = Uri.https('jsonplaceholder.typicode.com', '/posts');
-    var responseList = await http.get(urlList);
-    if (responseList.statusCode == 200) {
-      var jsonListResponse =
-          convert.jsonDecode(responseList.body) as List<dynamic>;
-      print("jsonResponse");
-      print(jsonListResponse);
-    } else {
-      print("error");
-      print(responseList.statusCode);
-    }
-    var urlDetails = Uri.https('jsonplaceholder.typicode.com', '/posts/1');
-    var responseDetails = await http.get(urlDetails);
-    if (responseDetails.statusCode == 200) {
-      var jsonDetailsResponse =
-          convert.jsonDecode(responseDetails.body) as Map<String, dynamic>;
-      print("jsonResponse");
-      print(jsonDetailsResponse);
-    } else {
-      print("error");
-      print(responseDetails.statusCode);
-    }
-  }
-
-  void getTime() async {
-    var urlTime = Uri.http("worldtimeapi.org", "/api/Asia/Dhaka");
+  void getTime(timeZone) async {
+    var urlTime = Uri.http("worldtimeapi.org", "/api/$timeZone");
     var responseTime = await http.get(urlTime);
     if (responseTime.statusCode == 200) {
       var jsonTimeResponse =
           convert.jsonDecode(responseTime.body) as Map<String, dynamic>;
-      print(jsonTimeResponse);
+      var datetime = jsonTimeResponse["datetime"];
+      var offset = jsonTimeResponse["utc_offset"];
+      DateTime now = DateTime.parse(datetime);
+      now = now
+          .add(Duration(hours: int.parse(offset.toString().substring(1, 3))));
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacementNamed(context, "/home", arguments: {
+        "currentDate": "${now.day}-${now.month}-${now.year}",
+        "currentTime": DateFormat.jm().format(now)
+      });
     } else {
       print(responseTime.statusCode);
     }
@@ -70,10 +37,7 @@ class _ChooseLocationState extends State<ChooseLocation> {
   @override
   void initState() {
     super.initState();
-    print("initState");
-    getData();
-    getAPIData();
-    getTime();
+    getTime("Asia/Dhaka");
   }
 
   @override
@@ -97,14 +61,6 @@ class _ChooseLocationState extends State<ChooseLocation> {
                 label: const Text("Home")),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            counter++;
-          });
-        },
-        child: Text(counter.toString()),
       ),
     );
   }

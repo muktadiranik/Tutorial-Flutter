@@ -68,8 +68,12 @@ class _HomeState extends State<Home> {
     getTime("Asia/Dhaka");
   }
 
+  Map data = {};
+
   @override
   Widget build(BuildContext context) {
+    data = ModalRoute.of(context)?.settings.arguments as Map;
+
     return Scaffold(
         appBar: AppBar(
           title: const Text("Home"),
@@ -94,6 +98,16 @@ class _HomeState extends State<Home> {
               ),
               Text(
                 currentTime,
+                style:
+                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                data["currentDate"],
+                style:
+                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                data["currentTime"],
                 style:
                     const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
