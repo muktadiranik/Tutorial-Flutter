@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class Loading extends StatefulWidget {
   const Loading({super.key});
@@ -48,8 +49,9 @@ class _LoadingState extends State<Loading> {
   Widget build(BuildContext context) {
     return const Scaffold(
         body: Center(
-            child: CircularProgressIndicator(
-      color: Colors.red,
+            child: SpinKitCubeGrid(
+      color: Colors.blue,
+      size: 50.0,
     )));
   }
 }
