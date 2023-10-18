@@ -46,7 +46,6 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
     var response = await http.get(url);
     var responseJson = convert.jsonDecode(response.body);
     for (var i = 0; i < responseJson.length; i++) {
-      print(responseJson[i]);
       listAPI.add(responseJson[i]);
     }
     setState(() {
