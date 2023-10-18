@@ -46,6 +46,7 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
     var response = await http.get(url);
     var responseJson = convert.jsonDecode(response.body);
     for (var i = 0; i < responseJson.length; i++) {
+      print(responseJson[i]);
       listAPI.add(responseJson[i]);
     }
     setState(() {
@@ -96,25 +97,41 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
           ListView.builder(
             itemCount: list.length,
             itemBuilder: (context, index) {
-              return Card(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: Text(
-                          list[index]["body"],
-                          style: const TextStyle(fontSize: 20),
+              return Row(
+                children: [
+                  Expanded(
+                    flex: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        list[index]["body"],
+                        style: const TextStyle(
+                          fontSize: 20,
                         ),
-                        subtitle: Text(list[index]["created"]),
                       ),
                     ),
-                    Expanded(
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        list[index]["created"],
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                        padding: const EdgeInsets.all(10.0),
                         child: IconButton(
                             onPressed: () => {deleteAPIData(list[index]["id"])},
-                            icon: const Icon(Icons.delete)))
-                  ],
-                ),
+                            icon: const Icon(Icons.delete))),
+                  ),
+                ],
               );
             },
             shrinkWrap: true,
