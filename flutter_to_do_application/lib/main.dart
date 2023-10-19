@@ -1,6 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MainApp());
@@ -34,6 +37,8 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
   final controller = TextEditingController();
   List listAPI = [];
   List list = [];
+  bool edit = false;
+  int id = 0;
 
   @override
   void dispose() {
@@ -45,11 +50,14 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
     var url = Uri.http("localhost:8000", "/list/");
     var response = await http.get(url);
     var responseJson = convert.jsonDecode(response.body);
+    var tempList = [];
     for (var i = 0; i < responseJson.length; i++) {
-      listAPI.add(responseJson[i]);
+      DateTime dateTime = DateTime.parse(responseJson[i]["created"]);
+      String formattedDate = DateFormat.yMd().add_jm().format(dateTime);
+      tempList.add({"body": responseJson[i]["body"], "created": formattedDate});
     }
     setState(() {
-      list = listAPI;
+      list = tempList;
     });
   }
 
@@ -64,12 +72,26 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
     controller.clear();
   }
 
-  void deleteAPIData(id) async {
-    var url = Uri.http("localhost:8000", "/list/$id/");
+  void deleteAPIData(x) async {
+    var url = Uri.http("localhost:8000", "/list/$x/");
     var response = await http.delete(url);
     if (response.statusCode == 204) {
       listAPI.clear();
       list.clear();
+      getAPIData();
+    }
+  }
+
+  void editAPIData(x) async {
+    print(x);
+    var url = Uri.http("localhost:8000", "/list/$x/");
+    var response = await http.put(url, body: {"body": controller.text});
+    if (response.statusCode == 200) {
+      id = 0;
+      edit = false;
+      listAPI.clear();
+      list.clear();
+      controller.clear();
       getAPIData();
     }
   }
@@ -91,7 +113,14 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
             decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.message),
                 suffix: IconButton(
-                    onPressed: addAPIData, icon: const Icon(Icons.send))),
+                    onPressed: () {
+                      if (edit) {
+                        editAPIData(id);
+                      } else {
+                        addAPIData();
+                      }
+                    },
+                    icon: const Icon(Icons.send))),
           ),
           ListView.builder(
             itemCount: list.length,
@@ -121,6 +150,18 @@ class _APIToDoWidgetState extends State<APIToDoWidget> {
                         ),
                       ),
                     ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                        padding: const EdgeInsets.all(10.0),
+                        child: IconButton(
+                            onPressed: () => {
+                                  controller.text = list[index]["body"],
+                                  edit = true,
+                                  id = list[index]["id"],
+                                },
+                            icon: const Icon(Icons.edit))),
                   ),
                   Expanded(
                     flex: 1,
